@@ -13,6 +13,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
 import smtplib
 from constants import constant
+import ctypes
 
 
 from imgurpython import ImgurClient
@@ -196,6 +197,20 @@ def comment_view(request):
         return redirect('/login')
 
 
-def logout_page(request):
-    logout(request)
-    return HttpResponseRedirect('/login/')
+#def logout_page(request):
+    #logout(request)
+    #return HttpResponseRedirect('/login/')
+
+
+def logout_view(request):
+    request.session.modified = True
+    response = redirect("/login/")
+
+    ctypes.windll.user32.MessageBoxW(0, u"You've been logged out successfully!",
+                                     u"Thank you!", 0)
+
+    response.delete_cookie(key="session_token")
+    return response
+
+
+# For viewing posts by a particular user

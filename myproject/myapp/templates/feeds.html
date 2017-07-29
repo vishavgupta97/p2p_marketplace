@@ -11,7 +11,7 @@
         {% csrf_token %}
         <input type="submit" class="btn-default btn" value="Create Post">
     </form>
-    <h1 align="right"><a href="/login/">Logout</a></h1>
+    <h1 align="right"><a href="{% url 'logout' %}"> Log Out </a>
 
     {% for post in posts %}
 
