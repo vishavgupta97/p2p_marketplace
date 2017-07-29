@@ -11,7 +11,7 @@ from myproject.settings import BASE_DIR
 from django.contrib.auth.hashers import make_password,check_password
 from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
-
+import smtplib
 
 
 from imgurpython import ImgurClient
@@ -43,7 +43,9 @@ def signup_view(request) :
 
             new_user=UserModel(name=name,password=make_password(password),username=username,email=email)
             new_user.save()   #finally saves the data in database
-            #template_name='success.html'
+
+
+            #sending welcome Email
 
         return render(request,'success.html',{'form': form})
 
