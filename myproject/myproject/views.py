@@ -163,7 +163,8 @@ def post_view(request) :
                 client = ImgurClient(client_id,client_sec)
                 post.image_url = client.upload_from_path(path, anon=True)['link']
                 post.save()
-
+                ctypes.windll.user32.MessageBoxW(0, u"Your new post is ready.",
+                                                 u"Well done!", 0)
 
                 return redirect('/feed/')
 
@@ -181,9 +182,19 @@ def like_view(request):
         form = LikeForm(request.POST)
         if form.is_valid():
             post_id = form.cleaned_data.get('post').id
+
             existing_like = LikeModel.objects.filter(post_id=post_id, user=user).first()
             if not existing_like:
-                LikeModel.objects.create(post_id=post_id, user=user)
+                like = LikeModel.objects.create(post_id=post_id, user=user)
+                ctypes.windll.user32.MessageBoxW(0, u"Keep scrolling for more.",
+                                             u"Liked!", 0)
+                server = smtplib.SMTP('smtp.gmail.com', 587)
+                server.starttls()
+                to_email = like.post.user.email
+                message = "You have a new like on your post posted on instaclone.WEll done keep posting to get more popular"
+                server.login('vishavgupta110@gmail.com', constant)
+                server.sendmail('vishavgupta110@gmail.com', to_email, message)
+
             else:
                 existing_like.delete()
             return redirect('/feed/')
@@ -200,6 +211,16 @@ def comment_view(request):
             comment_text = form.cleaned_data.get('comment_text')
             comment = CommentModel.objects.create(user=user, post_id=post_id, comment_text=comment_text)
             comment.save()
+
+            ctypes.windll.user32.MessageBoxW(0, u"Keep scrolling for more.",
+                                             u"Successfully Comment added!", 0)
+            to_mail = comment.post.user.email
+            text_message = "hi!!!you have one new comment on your post.Keep posting To get more comments" \
+                           "Thank You TEAM::ACADVIEW"
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login('vishavgupta110@gmail.com', constant)
+            server.sendmail('vishavgupta110@gmail.com', to_mail, text_message)
             return redirect('/feed/')
         else:
             return redirect('/feed/')
@@ -211,6 +232,7 @@ def comment_view(request):
     #logout(request)
     #return HttpResponseRedirect('/login/')
 
+# For destroying session with functionality of log out a particular USER
 
 def logout_view(request):
     request.session.modified = True
