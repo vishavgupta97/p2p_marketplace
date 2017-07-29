@@ -11,8 +11,9 @@ from myproject.settings import BASE_DIR
 from django.contrib.auth.hashers import make_password,check_password
 from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
+from clarifai.rest import ClarifaiApp
 import smtplib
-from constants import constant
+from constants import constant,CLARIFAI_API_KEY
 import ctypes
 
 
@@ -27,37 +28,45 @@ def signup_view(request) :
     #Business Logic starts here
 
     if request.method=='GET' :  #IF GET REQUEST IS RECIEVED THEN DISPLAY THE SIGNUP FORM
-        #today=datetime.now()
+
         form = SignUpForm()
-        #template_name='signup.html'
-        return render(request,'signup.html',{'form':form})
 
     elif request.method=='POST' :
         form = SignUpForm(request.POST)
         if form.is_valid() : #Checks While Valid Entries Is Performed Or Not
-            username=form.cleaned_data['username']
-            email=form.cleaned_data['email']
-            name=form.cleaned_data['name']
-            password=form.cleaned_data['password']
-            #here above cleaned_data is used so that data could be extracted in safe manner,checks SQL injections
+            if len(form.cleaned_data['username']) < 4 or len(form.cleaned_data['password']) < 5:
+                ctypes.windll.user32.MessageBoxW(0, u" Kindly re-enter username or password!min(4)usename and 5 character for password",
+                                                 u"INSUFFICIENT CHARACTERS.", 0)
 
-            #following code inserts data into database
+            else :
+                username=form.cleaned_data['username']
+                email=form.cleaned_data['email']
+                name=form.cleaned_data['name']
+                password=form.cleaned_data['password']
+                #here above cleaned_data is used so that data could be extracted in safe manner,checks SQL injections
+                #following code inserts data into database
 
-            new_user=UserModel(name=name,password=make_password(password),username=username,email=email)
-            new_user.save()   #finally saves the data in database
+                new_user=UserModel(name=name,password=make_password(password),username=username,email=email)
+                new_user.save()   #finally saves the data in database
 
 
-            #sending welcome Email To User That Have Signup Successfully
-            message = "Welcome!! To Creating Your Account At p2p marketplace Managed by vishav gupta.You Have " \
+                #sending welcome Email To User That Have Signup Successfully
+                message = "Welcome!! To Creating Your Account At p2p marketplace Managed by vishav gupta.You Have " \
                       "Successfully Registered.It is correct place for marketing Your product.We Are Happy To Get You" \
                       "as one of our member "
-            server = smtplib.SMTP('smtp.gmail.com',587)
-            server.starttls()
-            server.login('vishavgupta110@gmail.com',constant)
-            server.sendmail('vishavgupta110@gmail.com',email,message)
-            #   WOW!!!SUCCESSFULLY SEND EMAIL TO THE USER WHO HAS SIGNUP.USER CAN CHECK INBOX OR SPAM
-            # THIS IS ACCURATLY WORKING
-        return render(request,'success.html',{'form': form})
+                server = smtplib.SMTP('smtp.gmail.com',587)
+                server.starttls()
+                server.login('vishavgupta110@gmail.com',constant)
+                server.sendmail('vishavgupta110@gmail.com',email,message)
+                #   WOW!!!SUCCESSFULLY SEND EMAIL TO THE USER WHO HAS SIGNUP.USER CAN CHECK INBOX OR SPAM
+                # THIS IS ACCURATLY WORKING
+                ctypes.windll.user32.MessageBoxW(0, u"You have successfully signed up.",
+                                                 u"Congratulations!", 0)
+                response = redirect('/login/')
+                return response
+
+
+    return render(request,'signup.html',{'form': form})
 
 
 
@@ -96,10 +105,11 @@ def login_view(request) :
                     #return render(request,template,{'form':form},response)
                 else:
                     #password is incorrects
-                    template = 'login_fail.html'
-                    response_data['message'] = "Incorrect Password!!!Try Again"
-            else :
-                template ='login_fail.html'
+                    ctypes.windll.user32.MessageBoxW(0, u"Invalid Password!!!kindly enter correct password", u"Error", 0)
+                    response_data['message'] = 'Please try again!'
+            else:
+                ctypes.windll.user32.MessageBoxW(0, u"Invalid Credentials!", u"Error", 0)
+
     response_data['form'] = form
     return render(request,template,{'form':form})
 
