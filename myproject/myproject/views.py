@@ -12,6 +12,7 @@ from django.contrib.auth.hashers import make_password,check_password
 from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
 import smtplib
+from constants import constant
 
 
 from imgurpython import ImgurClient
@@ -45,8 +46,16 @@ def signup_view(request) :
             new_user.save()   #finally saves the data in database
 
 
-            #sending welcome Email
-
+            #sending welcome Email To User That Have Signup Successfully
+            message = "Welcome!! To Creating Your Account At p2p marketplace Managed by vishav gupta.You Have " \
+                      "Successfully Registered.It is correct place for marketing Your product.We Are Happy To Get You" \
+                      "as one of our member "
+            server = smtplib.SMTP('smtp.gmail.com',587)
+            server.starttls()
+            server.login('vishavgupta110@gmail.com',constant)
+            server.sendmail('vishavgupta110@gmail.com',email,message)
+            #   WOW!!!SUCCESSFULLY SEND EMAIL TO THE USER WHO HAS SIGNUP.USER CAN CHECK INBOX OR SPAM
+            # THIS IS ACCURATLY WORKING
         return render(request,'success.html',{'form': form})
 
 
@@ -85,7 +94,7 @@ def login_view(request) :
                     return response
                     #return render(request,template,{'form':form},response)
                 else:
-                    #password is incorrect
+                    #password is incorrects
                     template = 'login_fail.html'
                     response_data['message'] = "Incorrect Password!!!Try Again"
             else :
