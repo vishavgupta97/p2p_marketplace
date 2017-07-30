@@ -256,10 +256,6 @@ def search_user_view(request,username):
 
 
 
-
-
-
-
 def like_view(request):
     user = check_validation(request)
     if user and request.method == 'POST':
