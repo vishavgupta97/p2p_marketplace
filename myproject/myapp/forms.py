@@ -41,7 +41,13 @@ class SearchUserForm(forms.ModelForm) :
         fields = ['username']
 
 
+
 class UpvoteForm(forms.ModelForm) :
     class Meta :
         model = UpvoteModel
         fields = ['comment']
+
+
+
+
+

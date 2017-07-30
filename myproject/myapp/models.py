@@ -75,6 +75,8 @@ class CommentModel(models.Model):
 
 # Model to sort tags using Clarifai.
 
+
+
 class CategoryModel(models.Model):
     post = models.ForeignKey(PostModel)
     category_text = models.CharField(max_length=200)
