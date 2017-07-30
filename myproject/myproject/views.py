@@ -140,6 +140,7 @@ def feed_view(request) :
                 post.has_liked = True
 
             comments = CommentModel.objects.filter(post_id=post.id)
+            #Logic for upvoting
             for comment in comments:
                 existing_upvote = UpvoteModel.objects.filter(user=user, comment_id=comment.id).first()
                 if existing_upvote:
