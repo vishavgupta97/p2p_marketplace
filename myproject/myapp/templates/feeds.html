@@ -11,7 +11,7 @@
         {% csrf_token %}
         <input type="submit" class="btn-default btn" value="Create Post">
     </form>
-    <h1 align="right"><a href="{% url 'logout' %}"> Log Out </a>
+    <h1 align="right"><a href="{% url 'logout' %}"> Log Out </a></h1>
 
     {% for post in posts %}
 
@@ -34,6 +34,13 @@
                 <input type="submit" class="btn btn-default" value="Like">
                 {% endif %}
             </form>
+        </div>
+
+        <div>
+            <p> Categories: </p>
+            {% for category in post.categories %}
+            <span> {{ category.category_text }} </span>
+            {% endfor %}
         </div>
 
         <div>

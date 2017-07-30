@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from datetime import datetime
 import os
 from  myapp.forms import SignUpForm,LoginForm,PostForm,LikeForm,CommentForm
-from myapp.models import UserModel,SessionToken,PostModel,LikeModel,CommentModel,CategoryMOdel
+from myapp.models import UserModel,SessionToken,PostModel,LikeModel,CommentModel,CategoryModel
 from datetime import timedelta
 from django.utils import timezone
 from myproject.settings import BASE_DIR
@@ -150,6 +150,32 @@ def check_validation(request):
 
 
 
+def add_category(post):
+    app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
+
+    # Logo model
+
+    model = app.models.get('general-v1.3')
+    response = model.predict_by_url(url=post.image_url)
+
+    if response["status"]["code"] == 10000:
+        if response["outputs"]:
+            if response["outputs"][0]["data"]:
+                if response["outputs"][0]["data"]["concepts"]:
+                    for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
+                        category = CategoryModel(post=post, category_text = response["outputs"][0]["data"]["concepts"][index]["name"])
+                        category.save()
+                else:
+                    print "No concepts list error."
+            else:
+                print "No data list error."
+        else:
+            print "No output lists error."
+    else:
+        print "Response code error."
+
+
+
 def post_view(request) :
     user = check_validation(request)
 
@@ -252,26 +278,3 @@ def logout_view(request):
     return response
 
 
-def add_category(post):
-    app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
-
-    # Logo model
-
-    model = app.models.get('general-v1.3')
-    response = model.predict_by_url(url=post.image_url)
-
-    if response["status"]["code"] == 10000:
-        if response["outputs"]:
-            if response["outputs"][0]["data"]:
-                if response["outputs"][0]["data"]["concepts"]:
-                    for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
-                        category = CategoryModel(post=post, category_text = response["outputs"][0]["data"]["concepts"][index]["name"])
-                        category.save()
-                else:
-                    print "No concepts list error."
-            else:
-                print "No data list error."
-        else:
-            print "No output lists error."
-    else:
-        print "Response code error."
