@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from django.shortcuts import render, redirect
 from datetime import datetime
 import os
-from  myapp.forms import SignUpForm,LoginForm,PostForm,LikeForm,CommentForm
-from myapp.models import UserModel,SessionToken,PostModel,LikeModel,CommentModel,CategoryModel
+from  myapp.forms import SignUpForm,LoginForm,PostForm,LikeForm,CommentForm,CategoryForm,SearchUserForm,UpvoteForm
+from myapp.models import UserModel,SessionToken,PostModel,LikeModel,CommentModel,CategoryModel,UpvoteModel
 from datetime import timedelta
 from django.utils import timezone
 from myproject.settings import BASE_DIR
@@ -139,7 +139,13 @@ def feed_view(request) :
             if existing_like:
                 post.has_liked = True
 
-        return render(request, 'feeds.html', {'posts': posts})
+            comments = CommentModel.objects.filter(post_id=post.id)
+            for comment in comments:
+                existing_upvote = UpvoteModel.objects.filter(user=user, comment_id=comment.id).first()
+                if existing_upvote:
+                    comment.has_upvoted = True
+
+        return render(request, 'feeds.html', {'posts': posts,'comments':comments})
     else:
 
         return redirect('/login/')
@@ -228,6 +234,32 @@ def post_view(request) :
         return redirect('/login/')
 
 
+def search_view(request):
+    user=check_validation(request)
+    if user and request.method=="GET":
+        form=SearchUserForm()
+        return render(request, 'search.html', {'form': form})
+    elif request.method == "POST":
+        form = SearchUserForm(data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            posts = PostModel.objects.filter(user__username=username)
+            return render(request, 'feed.html', {'posts': posts})
+    return redirect('/login/')
+
+
+
+def search_user_view(request,username):
+    posts = PostModel.objects.filter(user__username=username)
+    return render(request, 'feed.html', {'posts': posts})
+
+
+
+
+
+
+
+
 def like_view(request):
     user = check_validation(request)
     if user and request.method == 'POST':
@@ -303,6 +335,30 @@ def category_view(request):
             return redirect('/feed/')
 
     return redirect('/login/')
+
+
+#view function to comment on post
+def upvote_view(request):
+      user = check_validation(request)
+      if request.method == 'POST':
+          form = UpvoteForm(request.POST)
+          if form.is_valid():
+              comment_id = form.cleaned_data.get('comment').id
+              existing_upvote = UpvoteModel.objects.filter(comment_id=comment_id, user=user).first()
+              if not existing_upvote:  # if comment is not upvoted by current user
+                  UpvoteModel.objects.create(comment_id=comment_id, user=user)
+              else:
+                  existing_upvote.delete()  # devote comment
+              return redirect('/feed/')
+          else:
+              return redirect('/login/')
+      else:
+          return redirect('/login/')
+      #return redirect('/index/')
+
+
+
+
 
 # For destroying session with functionality of log out a particular USER
 

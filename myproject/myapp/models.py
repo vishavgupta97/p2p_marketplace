@@ -67,9 +67,20 @@ class CommentModel(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
+    @property
+    def upvote_count(self):
+        return len(UpvoteModel.objects.filter(comment=self))
+
+
+
 # Model to sort tags using Clarifai.
 
 class CategoryModel(models.Model):
     post = models.ForeignKey(PostModel)
     category_text = models.CharField(max_length=200)
 
+class UpvoteModel(models.Model):
+    user = models.ForeignKey(UserModel)
+    comment = models.ForeignKey(CommentModel)
+    created_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)
