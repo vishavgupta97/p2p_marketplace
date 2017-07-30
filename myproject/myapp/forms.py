@@ -1,11 +1,16 @@
 from django import forms
-from models import UserModel,PostModel,LikeModel,CommentModel
+from models import UserModel,PostModel,LikeModel,CommentModel,UpvoteModel
 
 
 class SignUpForm(forms.ModelForm) :
     class Meta :
         model = UserModel
         fields = ['email','username','name','password']
+
+class CategoryForm(forms.ModelForm) :
+    class Meta :
+        model = PostModel
+        fields = ['category']
 
 class LoginForm(forms.ModelForm) :
     class Meta :
@@ -29,3 +34,14 @@ class CommentForm(forms.ModelForm) :
     class Meta :
         model = CommentModel
         fields = ['comment_text' , 'post' ]
+
+class SearchUserForm(forms.ModelForm) :
+    class Meta :
+        model = UserModel
+        fields = ['username']
+
+
+class UpvoteForm(forms.ModelForm) :
+    class Meta :
+        model = UpvoteModel
+        fields = ['comment']

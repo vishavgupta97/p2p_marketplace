@@ -33,6 +33,7 @@ class PostModel(models.Model):
     image = models.FileField(upload_to='user_images')
     image_url = models.CharField(max_length=255)
     caption = models.CharField(max_length=240)
+    category = models.CharField(max_length=270)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
     has_liked = False

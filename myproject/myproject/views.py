@@ -199,19 +199,19 @@ def post_view(request) :
                 post.save()
 
                 path = str(BASE_DIR +"//"+ post.image.url)
-
+                #Logic for cloud storage of image
                 client = ImgurClient(client_id,client_sec)
                 post.image_url = client.upload_from_path(path, anon=True)['link']
                 post.save()
 
-                add_category(post)  #Calling Add category for which furtur contact to clarifai
-
+                add_category(post)  #Calling Add category for which furture contact to clarifai
+                app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
                 model = app.models.get('general-v1.3')  # notify model which we are going to use from clarifai
                 response = model.predict_by_url(url=post.image_url)  # pass the url of current image
                 category = response["outputs"][0]["data"]["concepts"][0][
                     "name"]  # abstarct category name from json response
                 post.category = category  # pass value to postModel
-
+                post.save() #save in category field of the POSTMODEL
                 ctypes.windll.user32.MessageBoxW(0, u"Your new post is ready.",
                                                  u"Well done!", 0)
 

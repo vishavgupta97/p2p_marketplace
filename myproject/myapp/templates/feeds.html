@@ -59,6 +59,26 @@
             {% endfor %}
         </div>
 
+
+     <div>
+
+            {% for comment in comments %}
+            <p> <b>{{ comment.user.username }} [{{ comment.created_on }}]:</b> {{ comment.comment_text }}</p>
+                {{ comment.upvote_count }} user upvoted this comment
+              <form method="POST" action="/upvote/">
+              {% csrf_token %}
+                <input type="hidden" name="comment" value="{{ comment.id }}" />
+                {% if comment.has_upvoted %}
+                <input type="submit" class="btn btn-default" value="Upvoted">
+                {% else %}
+                <input type="submit" class="btn btn-default" value="Upvote">
+                {% endif %}
+            </form>
+            {% endfor %}
+
+        </div>
+
+
     {% endfor %}
 </body>
 </html>
