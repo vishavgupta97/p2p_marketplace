@@ -3,19 +3,21 @@ from __future__ import unicode_literals
 
 from django.shortcuts import render, redirect
 from datetime import datetime
+import os
 from  myapp.forms import SignUpForm,LoginForm,PostForm,LikeForm,CommentForm
-from myapp.models import UserModel,SessionToken,PostModel,LikeModel,CommentModel
+from myapp.models import UserModel,SessionToken,PostModel,LikeModel,CommentModel,CategoryMOdel
 from datetime import timedelta
 from django.utils import timezone
 from myproject.settings import BASE_DIR
 from django.contrib.auth.hashers import make_password,check_password
 from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
+#from clarifai import rest
 from clarifai.rest import ClarifaiApp
 import smtplib
 from constants import constant,CLARIFAI_API_KEY
 import ctypes
-
+import tkMessageBox
 
 from imgurpython import ImgurClient
 
@@ -62,7 +64,8 @@ def signup_view(request) :
                 # THIS IS ACCURATLY WORKING
                 ctypes.windll.user32.MessageBoxW(0, u"You have successfully signed up.",
                                                  u"Congratulations!", 0)
-                response = redirect('/login/')
+
+                response = redirect('/feed/')
                 return response
 
 
@@ -107,9 +110,10 @@ def login_view(request) :
                     #password is incorrects
                     ctypes.windll.user32.MessageBoxW(0, u"Invalid Password!!!kindly enter correct password", u"Error", 0)
                     response_data['message'] = 'Please try again!'
+                    redirect('/login/')
             else:
-                ctypes.windll.user32.MessageBoxW(0, u"Invalid Credentials!", u"Error", 0)
-
+                ctypes.windll.user32.MessageBoxW(0, u"Invalid Username !!enter valid name", u"Error", 0)
+                redirect('/login/')
     response_data['form'] = form
     return render(request,template,{'form':form})
 
@@ -167,6 +171,9 @@ def post_view(request) :
                                                  u"Well done!", 0)
 
                 return redirect('/feed/')
+            else :
+                ctypes.windll.user32.MessageBoxW(0, u"Kindly re-check.",
+                                                 u"Ooops!", 0)
 
         else :
             form = PostForm()
@@ -245,4 +252,26 @@ def logout_view(request):
     return response
 
 
-# For viewing posts by a particular user
+def add_category(post):
+    app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
+
+    # Logo model
+
+    model = app.models.get('general-v1.3')
+    response = model.predict_by_url(url=post.image_url)
+
+    if response["status"]["code"] == 10000:
+        if response["outputs"]:
+            if response["outputs"][0]["data"]:
+                if response["outputs"][0]["data"]["concepts"]:
+                    for index in range(0, len(response["outputs"][0]["data"]["concepts"])):
+                        category = CategoryModel(post=post, category_text = response["outputs"][0]["data"]["concepts"][index]["name"])
+                        category.save()
+                else:
+                    print "No concepts list error."
+            else:
+                print "No data list error."
+        else:
+            print "No output lists error."
+    else:
+        print "Response code error."
