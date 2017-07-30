@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from views import signup_view
-from views import login_view,feed_view,post_view,like_view,comment_view,logout_view
+from views import login_view,feed_view,post_view,like_view,comment_view,logout_view,category_view,search_view,upvote_view
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -28,5 +28,8 @@ urlpatterns = [
     url(r'^post/', post_view),
     url(r'^like/', like_view),
     url(r'^comment/', comment_view),
+    url(r'^upvote/',upvote_view),
+    url(r'^categories',category_view),
+    url(r'^search/',search_view),
     url('logout/',logout_view,name='logout'),
 ]
