@@ -14,29 +14,38 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import logout
 #from clarifai import rest
 from clarifai.rest import ClarifaiApp
+#using clarifai to categorizing Images According To Different Category
 import smtplib
+#smtplib is used to send email to a particular user who has performed certain actions(like post ,like etc)
 from constants import constant,CLARIFAI_API_KEY
+#all contants are stored in it
 import ctypes
+
+#(Applied All the Validations with help of ctypes.NOTE!!!!AFTER EVERY ACTION (EXAMPLE POST AN IMAGE,LIKE A POST
+#  YOU SEE A POP UP WINDOW ON YOUR TASKBAR INDICATING ACTIONS THAT IT HAS PERFORMED.CLICK OK TO IT AFTER EVERY ACTIONS )
+
+#(-------------------------All VALIDATIONS ARE STRONGLY APLLIED -----------------------------------------)
+
 import tkMessageBox
 
 from imgurpython import ImgurClient
-
+#(Imgur Saves THe IMage TO cloud)
 client_id = "23d291dfe81302c"
 client_sec = "ffe60658423553b9735538521613638981b0e69c"
-
+#(Clent id and client secret )
 
 # Create your views here.
-def signup_view(request) :
+def signup_view(request) :     #sigup here
     #Business Logic starts here
 
     if request.method=='GET' :  #IF GET REQUEST IS RECIEVED THEN DISPLAY THE SIGNUP FORM
 
         form = SignUpForm()
 
-    elif request.method=='POST' :
+    elif request.method=='POST' :   #for post request
         form = SignUpForm(request.POST)
         if form.is_valid() : #Checks While Valid Entries Is Performed Or Not
-            if len(form.cleaned_data['username']) < 4 or len(form.cleaned_data['password']) < 5:
+            if len(form.cleaned_data['username']) < 4 or len(form.cleaned_data['password']) < 5: #username at least 4 character and password at least 5 characters
                 ctypes.windll.user32.MessageBoxW(0, u" Kindly re-enter username or password!min(4)usename and 5 character for password",
                                                  u"INSUFFICIENT CHARACTERS.", 0)
 
@@ -64,7 +73,7 @@ def signup_view(request) :
                 # THIS IS ACCURATLY WORKING
                 ctypes.windll.user32.MessageBoxW(0, u"You have successfully signed up.",
                                                  u"Congratulations!", 0)
-
+                #(showing message to user for successfully signing up)
                 response = redirect('/feed/')
                 return response
 
@@ -118,6 +127,7 @@ def login_view(request) :
     return render(request,template,{'form':form})
 
 
+#logic for showing feeds
 def feed_view(request) :
     user = check_validation(request)
     if user:
@@ -140,7 +150,7 @@ def feed_view(request) :
 #For validating the session
 def check_validation(request):
     if request.COOKIES.get('session_token'):
-        session = SessionToken.objects.filter(session_token=request.COOKIES.get('session_token')).first()
+        session = SessionToken.objects.filter(session_token=request.COOKIES.get('session_token')).first() #if session has already created on server
         if session:
             time_to_live = session.created_on + timedelta(days=1)
             if time_to_live > timezone.now():
@@ -149,7 +159,7 @@ def check_validation(request):
         return None
 
 
-
+#(THIS IS THE MAIN OBJECTIVE FOR AUTO CATEGORISATION OF PRODUCTS WHERE USERS CAN UPLOAD THEIR PRODUCT)
 def add_category(post):
     app = ClarifaiApp(api_key=CLARIFAI_API_KEY)
 
@@ -175,7 +185,7 @@ def add_category(post):
         print "Response code error."
 
 
-
+#DEFINITION FOR POSTING AN IMAGE
 def post_view(request) :
     user = check_validation(request)
 
@@ -193,6 +203,15 @@ def post_view(request) :
                 client = ImgurClient(client_id,client_sec)
                 post.image_url = client.upload_from_path(path, anon=True)['link']
                 post.save()
+
+                add_category(post)  #Calling Add category for which furtur contact to clarifai
+
+                model = app.models.get('general-v1.3')  # notify model which we are going to use from clarifai
+                response = model.predict_by_url(url=post.image_url)  # pass the url of current image
+                category = response["outputs"][0]["data"]["concepts"][0][
+                    "name"]  # abstarct category name from json response
+                post.category = category  # pass value to postModel
+
                 ctypes.windll.user32.MessageBoxW(0, u"Your new post is ready.",
                                                  u"Well done!", 0)
 
@@ -264,6 +283,26 @@ def comment_view(request):
 #def logout_page(request):
     #logout(request)
     #return HttpResponseRedirect('/login/')
+
+
+
+#view function to view post of particular category
+def category_view(request):
+    user = check_validation(request)
+
+    if user and request.method=="GET":
+        posts = PostModel.objects.all().order_by('created_on') #pass all images data when categories are to be displayed
+        return render(request, 'categories.html', {'posts': posts})
+    elif request.method=="POST":
+        form=CategoryForm(request.POST)
+        if form.is_valid():
+            category = form.cleaned_data.get('category')
+            posts = PostModel.objects.filter(category=category) #select only those post which have same category as selected by user
+            return render(request, 'feed.html', {'posts': posts})
+        else:
+            return redirect('/feed/')
+
+    return redirect('/login/')
 
 # For destroying session with functionality of log out a particular USER
 
