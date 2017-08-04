@@ -142,7 +142,7 @@ def feed_view(request):
                     if existing_upvote:
                         comment.has_upvoted = True
 
-            return render(request, 'feeds.html', {'posts': posts})
+            return render(request, 'feeds.html', {'posts': posts,'comments':comments})
      else:
         return redirect('/login/')
 
