@@ -142,7 +142,7 @@ def feed_view(request):
                     if existing_upvote:
                         comment.has_upvoted = True
 
-            return render(request, 'feeds.html', {'posts': posts,'comments':comments})
+                return render(request, 'feeds.html', {'posts': posts,'comments':comments})
      else:
         return redirect('/login/')
 
@@ -346,7 +346,7 @@ def category_view(request):
     user = check_validation(request)
 
     if user and request.method=="GET":
-        posts = PostModel.objects.all().order_by('created_on') #pass all images data when categories are to be displayed
+        posts = PostModel.objects.all().order_by('-created_on') #pass all images data when categories are to be displayed
         return render(request, 'categories.html', {'posts': posts})
     elif request.method=="POST":
         form=CategoryForm(request.POST)
