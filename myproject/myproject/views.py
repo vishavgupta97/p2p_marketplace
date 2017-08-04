@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from datetime import datetime
 import os
 from  myapp.forms import SignUpForm,LoginForm,PostForm,LikeForm,CommentForm,CategoryForm,SearchUserForm,UpvoteForm
-from myapp.models import UserModel,SessionToken,PostModel,LikeModel,CommentModel,CategoryModel,UpvoteModel
+from myapp.models import UserModel,SessionToken,PostModel,LikeModel,CommentModel,UpvoteModel,CategoryModel
 from datetime import timedelta
 from django.utils import timezone
 from myproject.settings import BASE_DIR
@@ -127,29 +127,55 @@ def login_view(request) :
     return render(request,template,{'form':form})
 
 
-#logic for showing feeds
-def feed_view(request) :
-    user = check_validation(request)
-    if user:
+#view function to view news feed
+def feed_view(request):
+     user = check_validation(request)
+     if user:
+            posts = PostModel.objects.all().order_by('created_on')  #order images on the basis of time they are created
+            for post in posts:
+                existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first() #check for the likes on post
+                if existing_like:
+                    post.has_liked = True
+                comments = CommentModel.objects.filter(post_id=post.id)
+                for comment in comments:
+                    existing_upvote = UpvoteModel.objects.filter(user=user, comment_id=comment.id ).first()
+                    if existing_upvote:
+                        comment.has_upvoted = True
 
-        posts = PostModel.objects.all().order_by('-created_on')
-
-        for post in posts:
-            existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
-            if existing_like:
-                post.has_liked = True
-
-            comments = CommentModel.objects.filter(post_id=post.id)
-            #Logic for upvoting
-            for comment in comments:
-                existing_upvote = UpvoteModel.objects.filter(user=user, comment_id=comment.id).first()
-                if existing_upvote:
-                    comment.has_upvoted = True
-
-        return render(request, 'feeds.html', {'posts': posts,'comments':comments})
-    else:
-
+            return render(request, 'feeds.html', {'posts': posts})
+     else:
         return redirect('/login/')
+
+
+
+
+
+
+
+
+#logic for showing feeds
+#def feed_view(request) :
+    #user = check_validation(request)
+    #if user:
+
+        #posts = PostModel.objects.all().order_by('-created_on')
+
+        #for post in posts:
+           # existing_like = LikeModel.objects.filter(post_id=post.id, user=user).first()
+           # if existing_like:
+                #post.has_liked = True
+
+            #comments = CommentModel.objects.filter(post_id=post.id)
+            #Logic for upvoting
+            #for comment in comments:
+                #existing_upvote = UpvoteModel.objects.filter(user=user, comment_id=comment.id).first()
+                #if existing_upvote:
+                   # comment.has_upvoted = True
+
+           # return render(request, 'feeds.html', {'posts': posts,'comments':comments})
+    #else:
+
+       # return redirect('/login/')
 
 
 #For Validation Of the Session In THe SErver
