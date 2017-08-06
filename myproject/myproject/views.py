@@ -271,14 +271,14 @@ def search_view(request):
         if form.is_valid():
             username = form.cleaned_data.get('username')
             posts = PostModel.objects.filter(user__username=username)
-            return render(request, 'feed.html', {'posts': posts})
+            return render(request, 'feeds.html', {'posts': posts})
     return redirect('/login/')
 
 
 
 def search_user_view(request,username):
     posts = PostModel.objects.filter(user__username=username)
-    return render(request, 'feed.html', {'posts': posts})
+    return render(request, 'feeds.html', {'posts': posts})
 
 
 
@@ -353,11 +353,11 @@ def category_view(request):
         if form.is_valid():
             category = form.cleaned_data.get('category')
             posts = PostModel.objects.filter(category=category) #select only those post which have same category as selected by user
-            return render(request, 'feed.html', {'posts': posts})
+            return render(request, 'feeds.html', {'posts': posts})
         else:
             return redirect('/feed/')
 
-    return redirect('/login/')
+    #return redirect('/login/')
 
 
 #view function to comment on post
